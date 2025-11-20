@@ -27,6 +27,8 @@ export interface ExtractionResponse {
   invoice_number: string;
   service_receipt: string;
   category: string;
+  is_valid_document: boolean;
+  validation_message?: string;
 }
 
 export interface DashboardStats {

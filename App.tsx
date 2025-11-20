@@ -16,11 +16,11 @@ const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [devices, setDevices] = useState<Device[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // If keys are placeholders, don't attempt auth check
     if (!isConfigured || !auth) {
       setLoadingAuth(false);
       return;
@@ -39,7 +39,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && (view === 'dashboard' || view === 'list')) {
       refreshDevices();
     }
   }, [view, user]);
@@ -47,11 +47,13 @@ const App: React.FC = () => {
   const refreshDevices = async () => {
     if (!user) return;
     setLoadingData(true);
+    setFetchError(null);
     try {
       const data = await getDevices();
       setDevices(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading devices", error);
+      setFetchError("Failed to load devices. Please check your database permissions.");
     } finally {
       setLoadingData(false);
     }
@@ -73,7 +75,6 @@ const App: React.FC = () => {
     (d.category && d.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // 1. SHOW SETUP GUIDE IF KEYS ARE MISSING
   if (!isConfigured) {
     return <SetupGuide />;
   }
@@ -188,12 +189,13 @@ const App: React.FC = () => {
                 {view === 'list' && 'My Devices'}
                 {view === 'add' && 'Scan New Device'}
             </h1>
-            <p className="text-gray-500">
-                {view === 'dashboard' && 'Track your appliance warranties and service schedules.'}
-                {view === 'list' && 'Manage all your registered appliances.'}
-                {view === 'add' && 'Use AI to extract details from bills or warranty cards.'}
-            </p>
         </div>
+
+        {fetchError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
+            {fetchError}
+          </div>
+        )}
 
         {view === 'dashboard' && <Dashboard devices={devices} loading={loadingData} />}
         

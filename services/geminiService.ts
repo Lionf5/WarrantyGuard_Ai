@@ -2,10 +2,14 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ExtractionResponse } from "../types";
 
 // Initialize Gemini Client
-// The API key must be obtained exclusively from the environment variable process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const extractWarrantyDetails = async (base64Image: string): Promise<ExtractionResponse> => {
+  if (!ai) {
+    throw new Error("Gemini API Key is missing. Please check your .env file.");
+  }
+
   // Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
   const base64Data = base64Image.includes(',') 
     ? base64Image.split(',')[1] 
@@ -23,11 +27,16 @@ export const extractWarrantyDetails = async (base64Image: string): Promise<Extra
             }
           },
           {
-            text: `Analyze this image of an appliance bill, warranty card, or product box. 
-            Extract the following details into a strict JSON format. 
-            If a field is not found, return an empty string or empty array. 
-            Infer the 'expiry_date' based on 'purchase_date' and 'warranty_period' if explicitly stated, otherwise leave empty.
-            Infer the 'category' of the device (e.g., Refrigerator, Laptop, Washing Machine) based on the content.`
+            text: `Analyze this image carefully.
+            1. First, determine if this image is a valid appliance bill, warranty card, product box, or invoice containing product details. 
+               - If it is NOT a valid document (e.g., a selfie, a landscape, a blank paper, or irrelevant object), set 'is_valid_document' to false.
+               - If it is invalid, generate a funny, witty message in 'validation_message' telling the user to stop playing around and upload a real bill.
+            2. If it IS a valid document, set 'is_valid_document' to true.
+            3. Extract the following details into the JSON format.
+               - If a field is not found, return an empty string or empty array. 
+               - Infer the 'expiry_date' based on 'purchase_date' and 'warranty_period' if explicitly stated.
+               - Infer the 'category' of the device based on the content.
+            `
           }
         ]
       },
@@ -36,6 +45,8 @@ export const extractWarrantyDetails = async (base64Image: string): Promise<Extra
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            is_valid_document: { type: Type.BOOLEAN, description: "True if the image is a valid bill/warranty/product box, false otherwise." },
+            validation_message: { type: Type.STRING, description: "Funny message if invalid, or empty if valid." },
             device_serial: { type: Type.STRING, description: "The serial number of the device" },
             brand_name: { type: Type.STRING, description: "The manufacturer brand name" },
             warranty_period: { type: Type.STRING, description: "Duration of warranty (e.g., '24 months')" },
@@ -51,7 +62,7 @@ export const extractWarrantyDetails = async (base64Image: string): Promise<Extra
             service_receipt: { type: Type.STRING, description: "Service receipt number if applicable" },
             category: { type: Type.STRING, description: "Category of the appliance (e.g., TV, Fridge)" }
           },
-          required: ["brand_name"],
+          required: ["is_valid_document"],
         }
       }
     });

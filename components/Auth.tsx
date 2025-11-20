@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthProvider } from "firebase/auth";
+import React, { useState, useEffect } from 'react';
+import { 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult,
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  AuthProvider 
+} from "firebase/auth";
 import { auth, googleProvider, facebookProvider } from "../services/firebase";
-import { Shield, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +16,40 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Handle redirect result when the page reloads after a redirect sign-in
+  useEffect(() => {
+    if (auth) {
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result) {
+            // User is signed in.
+            console.log("Redirect sign-in successful", result.user);
+          }
+        })
+        .catch((error) => {
+          console.error("Redirect sign-in error", error);
+          setError(parseFirebaseError(error));
+        });
+    }
+  }, []);
+
+  const parseFirebaseError = (err: any) => {
+    let msg = err.message;
+    if (err.code === 'auth/account-exists-with-different-credential') {
+      msg = "An account already exists with the same email address but different sign-in credentials.";
+    } else if (err.code === 'auth/popup-closed-by-user') {
+      msg = "Sign-in cancelled.";
+    } else if (err.code === 'auth/popup-blocked') {
+      msg = "Popup blocked. We will try to redirect you instead.";
+    } else if (err.code === 'auth/unauthorized-domain') {
+      msg = `Domain not authorized. Add "${window.location.hostname}" to Firebase Console > Authentication > Settings > Authorized domains.`;
+    } else if (err.code) {
+       msg = err.code.replace('auth/', '').replace(/-/g, ' ');
+       msg = msg.charAt(0).toUpperCase() + msg.slice(1);
+    }
+    return msg;
+  };
 
   const handleSocialSignIn = async (provider: AuthProvider | undefined, providerName: string) => {
     if (!auth || !provider) {
@@ -18,17 +59,29 @@ const Auth: React.FC = () => {
     try {
       setLoading(true);
       setError('');
+      // Try popup first
       await signInWithPopup(auth, provider);
     } catch (err: any) {
-      console.error(err);
-      let msg = err.message;
-      if (err.code === 'auth/account-exists-with-different-credential') {
-        msg = "An account already exists with the same email address but different sign-in credentials.";
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        msg = "Sign-in cancelled.";
+      console.error("Popup error:", err);
+      
+      // If popup is blocked, closed (often happens in IDE previews automatically), or not supported, try redirect
+      if (err.code === 'auth/popup-blocked' || 
+          err.code === 'auth/operation-not-supported-in-this-environment' ||
+          err.code === 'auth/popup-closed-by-user') {
+          
+          setError("Popup sign-in failed or was closed. Redirecting to sign in page...");
+          try {
+             await signInWithRedirect(auth, provider);
+             return; // The page will redirect, so we don't need to unset loading immediately
+          } catch (redirectErr: any) {
+             setError(parseFirebaseError(redirectErr));
+          }
+      } else {
+          setError(parseFirebaseError(err));
       }
-      setError(msg);
     } finally {
+      // Only unset loading if we didn't trigger a redirect (or if redirect failed immediately)
+      // If we are redirecting, the page will unload, but unsetting loading here is fine too as it might take a moment
       setLoading(false);
     }
   };
@@ -48,9 +101,7 @@ const Auth: React.FC = () => {
         await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (err: any) {
-        // Clean up firebase error messages for UI
-        const msg = err.code ? err.code.replace('auth/', '').replace(/-/g, ' ') : err.message;
-        setError(msg.charAt(0).toUpperCase() + msg.slice(1));
+        setError(parseFirebaseError(err));
     } finally {
       setLoading(false);
     }
