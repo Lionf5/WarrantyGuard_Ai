@@ -1,0 +1,7 @@
+{
+  "name": "WarrantyGuard AI",
+  "description": "Smart appliance warranty tracker powered by Gemini. Scan bills and warranty cards to automatically extract details, track expiry dates, and manage service schedules.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
