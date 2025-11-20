@@ -2,13 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// IMPORTANT: YOU MUST REPLACE THESE VALUES WITH YOUR OWN FIREBASE CONFIGURATION
-// 1. Go to https://console.firebase.google.com/
-// 2. Create a new project or select an existing one
-// 3. Go to Project Settings > General > Your apps > Add app (Web)
-// 4. Copy the 'firebaseConfig' object below
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 const firebaseConfig = {
   // Replace with your API Key
