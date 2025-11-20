@@ -30,20 +30,17 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-// Initialize Firebase
-// We use a try-catch block to handle cases where config is missing during dev
+// Check if the config uses placeholders
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY_HERE";
+
 let app;
 let auth;
 let db;
 let googleProvider;
 let facebookProvider;
 
-try {
-    // Check if config is still the placeholder
-    if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
-        console.warn("⚠️ Firebase is using placeholder keys. Please update services/firebase.ts");
-    }
-
+if (isConfigured) {
+  try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
@@ -55,8 +52,11 @@ try {
     facebookProvider.addScope('email');
     facebookProvider.addScope('public_profile');
 
-} catch (error) {
-    console.warn("Firebase initialization failed. Check your configuration.", error);
+  } catch (error) {
+    console.error("Firebase initialization failed. Check your configuration.", error);
+  }
+} else {
+  console.warn("Firebase is not configured. Using placeholder keys.");
 }
 
-export { auth, db, googleProvider, facebookProvider };
+export { auth, db, googleProvider, facebookProvider, isConfigured };

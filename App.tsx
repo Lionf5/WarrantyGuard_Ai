@@ -4,8 +4,9 @@ import Dashboard from './components/Dashboard';
 import AddDevice from './components/AddDevice';
 import DeviceCard from './components/DeviceCard';
 import Auth from './components/Auth';
+import SetupGuide from './components/SetupGuide';
 import { getDevices, deleteDevice } from './services/storageService';
-import { auth } from './services/firebase';
+import { auth, isConfigured } from './services/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { ViewState, Device } from './types';
 
@@ -19,10 +20,12 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!auth) {
+    // If keys are placeholders, don't attempt auth check
+    if (!isConfigured || !auth) {
       setLoadingAuth(false);
       return;
     }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoadingAuth(false);
@@ -69,6 +72,11 @@ const App: React.FC = () => {
     d.brand_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (d.category && d.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // 1. SHOW SETUP GUIDE IF KEYS ARE MISSING
+  if (!isConfigured) {
+    return <SetupGuide />;
+  }
 
   if (loadingAuth) {
     return (
