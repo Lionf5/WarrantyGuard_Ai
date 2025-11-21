@@ -1,4 +1,6 @@
-
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
 # WarrantyGuard AI
 
@@ -11,18 +13,39 @@ Check out the live application running on Google Cloud Run:
 ## 🚀 Features
 
 -   **📸 AI-Powered Scanning:** Upload a photo of a receipt, invoice, or product box. Google Gemini AI automatically detects product details, purchase dates, and warranty periods.
--   **🛡️ Warranty Tracking:** valid documents are processed to calculate exactly when your warranty expires.
+-   **🛡️ Warranty Tracking:** Valid documents are processed to calculate exactly when your warranty expires.
 -   **📊 Smart Dashboard:** Get a clear overview of all your devices, their status, and upcoming expirations.
 -   **☁️ Secure Cloud Storage:** Your receipt images are safely stored in the cloud (Firebase Storage), so you never lose a proof-of-purchase again.
 -   **🔐 User Authentication:** Secure login ensures your data is private and accessible only to you.
 
+## ⚙️ Implementation Details
+
+This project is built as a Single Page Application (SPA) that leverages serverless technologies for backend logic and AI processing.
+
+### 1. Architecture Flow
+1.  **User Input:** The user uploads an image (receipt/bill) via the React frontend.
+2.  **AI Analysis:** The image is sent to the **Google Gemini API (`gemini-2.5-flash`)**. A specialized prompt instructs the AI to:
+    *   Validate the document (ensure it's a bill/receipt).
+    *   Extract structured data: `Product Name`, `Purchase Date`, `Warranty Period`, `Serial Number`.
+3.  **Data Persistence:**
+    *   **Metadata:** The extracted JSON data is stored in **Firebase Firestore** (NoSQL database).
+    *   **Assets:** The original image file is uploaded to **Firebase Storage** for long-term safekeeping.
+4.  **State Management:** The dashboard subscribes to Firestore updates to provide real-time views of warranty statuses.
+
+### 2. Security & Privacy
+*   **Authentication:** Implemented using **Firebase Authentication**.
+*   **Data Isolation:** Firestore security rules (implied) ensure users can only query and view their own devices (`userId == auth.uid`).
+
 ## 🛠️ Tech Stack
 
 -   **Frontend:** React (v19), TypeScript, Vite
--   **Styling:** Tailwind CSS
--   **AI Integration:** Google Gemini API (`gemini-2.5-flash`)
--   **Backend & Storage:** Firebase (Auth, Firestore, Storage)
--   **Icons:** Lucide React
+-   **Styling:** Tailwind CSS, Lucide React (Icons)
+-   **AI Model:** Google Gemini 2.5 Flash
+-   **Backend Services:**
+    -   Firebase Authentication
+    -   Firebase Cloud Firestore
+    -   Firebase Cloud Storage
+-   **Charts:** Recharts
 
 ## 🏃‍♂️ Run Locally
 
@@ -55,3 +78,4 @@ Check out the live application running on Google Cloud Run:
 -   **Output:** Structured JSON data containing Product Name, Category, Purchase Date, and Warranty Expiry.
 
 ---
+*Generated for WarrantyGuard AI*
