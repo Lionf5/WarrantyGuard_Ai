@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # WarrantyGuard AI
 
 **WarrantyGuard AI** is an intelligent application designed to simplify how you manage your household appliances and electronics. Instead of hoarding paper receipts and forgetting when warranties expire, simply snap a photo of your bill or warranty card. Our AI handles the rest.
