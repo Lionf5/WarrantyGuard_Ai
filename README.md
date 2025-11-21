@@ -1,6 +1,4 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+
 
 # WarrantyGuard AI
 
@@ -57,4 +55,3 @@ Check out the live application running on Google Cloud Run:
 -   **Output:** Structured JSON data containing Product Name, Category, Purchase Date, and Warranty Expiry.
 
 ---
-*Generated for WarrantyGuard AI*
